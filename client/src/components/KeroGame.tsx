@@ -83,24 +83,26 @@ const KeroGame: React.FC = () => {
   // Constantes do jogo - definem tamanhos, velocidades e proporções
   const CANVAS_WIDTH = 1000;    // Largura do canvas
   const CANVAS_HEIGHT = 600;    // Altura do canvas
-  const PLAYER_SIZE = 50;       // Tamanho do personagem (quadrado)
+  const PLAYER_SIZE = 100;      // Tamanho do personagem (dobrado de 50 para 100)
   const OBSTACLE_WIDTH = 60;    // Largura dos obstáculos
   const OBSTACLE_HEIGHT = 80;   // Altura dos obstáculos
   const MAX_SPEED = 15;         // Velocidade máxima do jogo
   const BASE_SPAWN_RATE = 0.015; // Taxa base de spawn de obstáculos
 
-  // Cores no estilo Arcade Neon
+  // Cores no estilo Arcade Vibrante com céu claro
   const COLORS = {
-    background: '#0A0E27',
+    background: '#87CEEB', // Azul céu claro
     player: '#FFD700',
     playerGlow: '#FFD700',
-    obstacle: '#FF1493',
-    obstacleGlow: '#FF1493',
+    obstacle: '#8B7355', // Marrom rochoso
+    obstacleGlow: '#A0522D', // Marrom mais escuro para sombra
+    rockHighlight: '#D2B48C', // Destaque da rocha (bege)
+    rockShadow: '#654321', // Sombra da rocha
     accent1: '#00FF00',
     accent2: '#0080FF',
     scanLine: 'rgba(255, 255, 255, 0.03)',
-    text: '#00FF00',
-    textGlow: '#00FF00',
+    text: '#2F4F4F', // Texto escuro para contrastar com o céu
+    textGlow: '#2F4F4F',
     warning: '#FF6600',
   };
 
@@ -243,9 +245,9 @@ const KeroGame: React.FC = () => {
     ctx.fillRect(x - glowSize, y - glowSize, size + glowSize * 2, size + glowSize * 2);
   };
 
-  // Draw scan lines effect
+  // Draw scan lines effect - mais sutil para fundo de céu claro
   const drawScanLines = (ctx: CanvasRenderingContext2D) => {
-    ctx.strokeStyle = COLORS.scanLine;
+    ctx.strokeStyle = 'rgba(135, 206, 235, 0.1)'; // Cor do céu com baixa opacidade
     ctx.lineWidth = 1;
     for (let i = 0; i < CANVAS_HEIGHT; i += 4) {
       ctx.beginPath();
@@ -410,20 +412,8 @@ const KeroGame: React.FC = () => {
       // Draw scan lines
       drawScanLines(ctx);
 
-      // Desenha o brilho (glow) ao redor do personagem com efeito pulsante
-      const playerGlowSize = 25 + Math.sin(Date.now() * 0.008) * 5;
-      drawGlow(ctx, state.playerX, state.playerY, PLAYER_SIZE, COLORS.playerGlow, playerGlowSize);
-
-      // Desenha o personagem
+      // Desenha o personagem (sem brilho amarelo)
       if (playerImageRef.current) {
-        // Adiciona sombra embaixo do personagem para dar profundidade
-        ctx.globalAlpha = 0.3;
-        ctx.fillStyle = COLORS.playerGlow;
-        ctx.beginPath();
-        ctx.ellipse(state.playerX + PLAYER_SIZE / 2, state.playerY + PLAYER_SIZE + 5, PLAYER_SIZE / 2, 3, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.globalAlpha = 1;
-         
         // Desenha a imagem do personagem carregada da pasta assets
         ctx.drawImage(playerImageRef.current, state.playerX, state.playerY, PLAYER_SIZE, PLAYER_SIZE);
       } else {
@@ -432,23 +422,64 @@ const KeroGame: React.FC = () => {
         ctx.fillRect(state.playerX, state.playerY, PLAYER_SIZE, PLAYER_SIZE);
       }
 
-      // Draw obstacles
+      // Desenha obstáculos no estilo rochas
       state.obstacles.forEach((obstacle, index) => {
-        // Draw glow with pulsing effect
+        // Efeito de brilho pulsante para as rochas
         const pulseAmount = Math.sin(Date.now() * 0.005 + index) * 5 + 15;
         drawGlow(ctx, obstacle.x, obstacle.y, obstacle.width, COLORS.obstacleGlow, pulseAmount);
 
-        // Draw obstacle with gradient
-        const obstacleGradient = ctx.createLinearGradient(obstacle.x, obstacle.y, obstacle.x, obstacle.y + obstacle.height);
-        obstacleGradient.addColorStop(0, COLORS.obstacle);
-        obstacleGradient.addColorStop(1, '#CC0099');
-        ctx.fillStyle = obstacleGradient;
-        ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
-
-        // Draw border
-        ctx.strokeStyle = COLORS.accent2;
-        ctx.lineWidth = 2;
-        ctx.strokeRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+        // Desenha a rocha como um polígono irregular para parecer uma rocha
+        ctx.beginPath();
+        
+        // Cria uma forma irregular para a rocha
+        const centerX = obstacle.x + obstacle.width / 2;
+        const centerY = obstacle.y + obstacle.height / 2;
+        const radiusX = obstacle.width / 2;
+        const radiusY = obstacle.height / 2;
+        
+        // Desenha uma forma oval irregular (rocha)
+        for (let i = 0; i < 12; i++) {
+          const angle = (i / 12) * Math.PI * 2;
+          // Adiciona variação aleatória baseada no índice para forma única
+          const variation = 0.85 + 0.15 * Math.sin(angle * 3 + index);
+          const x = centerX + Math.cos(angle) * radiusX * variation;
+          const y = centerY + Math.sin(angle) * radiusY * variation;
+          
+          if (i === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+        ctx.closePath();
+        
+        // Preenche com gradiente marrom rochoso
+        const rockGradient = ctx.createRadialGradient(
+          centerX, centerY, 0,
+          centerX, centerY, Math.max(radiusX, radiusY)
+        );
+        rockGradient.addColorStop(0, COLORS.rockHighlight);
+        rockGradient.addColorStop(0.7, COLORS.obstacle);
+        rockGradient.addColorStop(1, COLORS.rockShadow);
+        ctx.fillStyle = rockGradient;
+        ctx.fill();
+        
+        // Adiciona detalhes na rocha (linhas para textura)
+        ctx.strokeStyle = COLORS.rockShadow;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        
+        // Adiciona algumas linhas de textura para parecer rocha
+        ctx.beginPath();
+        ctx.moveTo(obstacle.x + obstacle.width * 0.3, obstacle.y + obstacle.height * 0.2);
+        ctx.lineTo(obstacle.x + obstacle.width * 0.5, obstacle.y + obstacle.height * 0.4);
+        ctx.lineTo(obstacle.x + obstacle.width * 0.7, obstacle.y + obstacle.height * 0.3);
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(obstacle.x + obstacle.width * 0.4, obstacle.y + obstacle.height * 0.6);
+        ctx.lineTo(obstacle.x + obstacle.width * 0.6, obstacle.y + obstacle.height * 0.8);
+        ctx.stroke();
       });
 
       // Draw particles
