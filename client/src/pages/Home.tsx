@@ -122,6 +122,23 @@ export default function Home() {
             font-size: clamp(9px, 1.3vw, 13px);
           }
         }
+
+        /* Tela baixa: aperta o envelope para o canvas ficar com o espaço */
+        @media (max-height: 460px) {
+          .game-layout {
+            padding: 2px;
+            gap: 2px;
+          }
+
+          .brand h1 {
+            font-size: 8px;
+          }
+
+          .controls-bar {
+            padding: 2px;
+            border-width: 1px;
+          }
+        }
       `}</style>
 
       <header className="brand">

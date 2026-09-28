@@ -19,9 +19,13 @@ export const CANVAS_RATIO = CANVAS_WIDTH / CANVAS_HEIGHT;
 export const MIN_CANVAS_WIDTH = 500;
 export const MIN_CANVAS_HEIGHT = (MIN_CANVAS_WIDTH / CANVAS_WIDTH) * CANVAS_HEIGHT;
 
-/** Abaixo disso a viewport é pequena demais para o jogo caber na horizontal. */
-export const MIN_VIEWPORT_WIDTH = 480;
-export const MIN_VIEWPORT_HEIGHT = 320;
+/**
+ * Abaixo disso a viewport é pequena demais para o jogo caber na horizontal.
+ * 500px de largura é o piso: dá exatamente o canvas mínimo (500x300). Acima
+ * disso o jogo roda na orientação que o jogador quiser, inclusive na vertical.
+ */
+export const MIN_VIEWPORT_WIDTH = 500;
+export const MIN_VIEWPORT_HEIGHT = 300;
 
 export type Direction = 'up' | 'down' | 'left' | 'right';
 

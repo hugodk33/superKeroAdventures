@@ -1,8 +1,8 @@
 /**
  * Tela de bloqueio do jogo.
  *
- * Aparece quando o jogo não pode rodar: celular na vertical ou janela menor
- * que a resolução mínima. Enquanto ela estiver na tela a partida é encerrada.
+ * Aparece quando a viewport é menor que o tamanho mínimo suportado. A
+ * orientação não é imposta: só trava quem está abaixo do piso.
  */
 
 import React from 'react';
@@ -13,9 +13,7 @@ interface OrientationGateProps {
   reason: GateReason;
 }
 
-const OrientationGate: React.FC<OrientationGateProps> = ({ reason }) => {
-  const isPortrait = reason === 'portrait';
-
+const OrientationGate: React.FC<OrientationGateProps> = () => {
   return (
     <div
       className="flex h-dvh w-full flex-col items-center justify-center gap-6 bg-black px-6 text-center"
@@ -79,24 +77,14 @@ const OrientationGate: React.FC<OrientationGateProps> = ({ reason }) => {
 
       <div className="kg-phone" aria-hidden="true" />
 
-      <h1 className="kg-title">{isPortrait ? 'VIRE O CELULAR' : 'TELA MUITO PEQUENA'}</h1>
+      <h1 className="kg-title">TELA MUITO PEQUENA</h1>
 
       <p className="kg-hint">
-        {isPortrait ? (
-          <>
-            GIRE PARA A HORIZONTAL
-            <br />
-            PARA COMEÇAR A JOGAR
-          </>
-        ) : (
-          <>
-            O JOGO PRECISA DE NO MÍNIMO
-            <br />
-            {MIN_VIEWPORT_WIDTH} x {MIN_VIEWPORT_HEIGHT} PX
-            <br />
-            GIRE O CELULAR OU AMPLIE A JANELA
-          </>
-        )}
+        O JOGO PRECISA DE NO MÍNIMO
+        <br />
+        {MIN_VIEWPORT_WIDTH} x {MIN_VIEWPORT_HEIGHT} PX
+        <br />
+        GIRE O CELULAR OU AMPLIE A JANELA
       </p>
     </div>
   );

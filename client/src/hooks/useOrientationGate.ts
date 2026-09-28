@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { MIN_VIEWPORT_HEIGHT, MIN_VIEWPORT_WIDTH } from '@/lib/game';
 
-export type GateReason = 'portrait' | 'too-small';
+export type GateReason = 'too-small';
 
 function evaluate(): GateReason | null {
   if (typeof window === 'undefined') return null;
@@ -13,20 +13,14 @@ function evaluate(): GateReason | null {
     return 'too-small';
   }
 
-  // A trava de orientação só vale para telas de toque (celular/tablet).
-  // No desktop uma janela estreita apenas mostra o aviso de tela pequena.
-  const isTouch = window.matchMedia('(pointer: coarse)').matches;
-  if (isTouch && height > width) {
-    return 'portrait';
-  }
-
+  // A orientação não é mais imposta: só trava quem está abaixo do tamanho
+  // mínimo. Quem tem tela maior que 500px joga na vertical se quiser.
   return null;
 }
 
 /**
  * Impede o jogo de rodar fora das condições suportadas.
  *
- * - 'portrait': celular na vertical -> mostra a tela "vire o celular".
  * - 'too-small': viewport abaixo da resolução mínima -> avisa para girar/ampliar.
  *
  * Sempre que o valor muda (girar o aparelho, redimensionar a janela) o jogo

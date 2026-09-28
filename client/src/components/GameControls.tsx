@@ -108,7 +108,7 @@ const GameControls: React.FC<GameControlsProps> = ({ controlsRef, onRestart }) =
   };
 
   return (
-    <div className="flex flex-col items-center justify-center gap-2">
+    <div className="flex flex-col items-center justify-center gap-2 controls-root">
       <style>{`
         .arcade-button {
           font-family: 'Press Start 2P', monospace;
@@ -167,6 +167,25 @@ const GameControls: React.FC<GameControlsProps> = ({ controlsRef, onRestart }) =
 
         .restart-button:hover { filter: brightness(1.1); }
         .restart-button:active { transform: scale(0.94); }
+
+        /* Tela baixa (celular deitado): o D-pad encolhe para sobrar altura
+           pro canvas, que é a parte que realmente importa. */
+        @media (max-height: 460px) {
+          .controls-root { gap: 3px; }
+          .arcade-button {
+            width: 30px;
+            height: 30px;
+            font-size: 9px;
+            border-width: 1px;
+          }
+          .controls-container,
+          .dpad-row { gap: 3px; }
+          .restart-button {
+            font-size: 6px;
+            padding: 3px 7px;
+            border-width: 1px;
+          }
+        }
       `}</style>
 
       <div className="controls-container">
