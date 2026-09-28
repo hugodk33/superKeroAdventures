@@ -121,6 +121,10 @@ const KeroGame: React.FC<KeroGameProps> = ({ controlsRef, status, finalScore, on
   const keysRef = useRef<Set<Direction>>(new Set());
   // Escala entre coordenadas do mundo (1000x600) e o buffer do canvas
   const renderScaleRef = useRef(1);
+  // Indica se o jogador está arrastando o dedo/mouse sobre o canvas
+  const pointerActiveRef = useRef(false);
+  // Última posição do ponteiro em coordenadas do mundo (1000x600)
+  const pointerWorldRef = useRef<{ x: number; y: number } | null>(null);
   // Último runId processado, para zerar o mundo só uma vez por partida
   const lastRunRef = useRef(runId);
 
@@ -357,6 +361,69 @@ const KeroGame: React.FC<KeroGameProps> = ({ controlsRef, status, finalScore, on
     };
   }, [onRun]);
 
+  // Puxa o jogador em direção a uma posição do mundo (1000x600).
+  // Usado pelo mouse na tela (clicar e guiar), para o movimento ficar suave
+  // mesmo com o cursor parado ou com poucos eventos de ponteiro. O toque
+  // (celular) fica só com o joystick, então apenas ponteiros não-touch entram.
+  const followPointer = (pointerX: number, pointerY: number) => {
+    const state = gameStateRef.current;
+    if (statusRef.current !== 'playing' || state.gameOver) return;
+
+    const dx = pointerX - (state.playerX + PLAYER_WIDTH / 2);
+    const dy = pointerY - (state.playerY + PLAYER_HEIGHT / 2);
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance > 4) {
+      // Passo proporcional à distância: o personagem "cola" no cursor
+      // sem passar por cima dele (evita tremular)
+      const step = Math.max(5, Math.min(30, distance * 0.35));
+      state.playerX = Math.max(0, Math.min(CANVAS_WIDTH - PLAYER_WIDTH, state.playerX + (dx / distance) * step));
+      state.playerY = Math.max(0, Math.min(CANVAS_HEIGHT - PLAYER_HEIGHT, state.playerY + (dy / distance) * step));
+    }
+  };
+
+  // Converte a posição da tela (mouse/dedo) para o mundo 1000x600
+  const toWorldPosition = (clientX: number, clientY: number) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return null;
+
+    // O canvas é reduzido por CSS para caber na tela, então a posição
+    // precisa ser convertida de volta para a resolução do mundo
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return null;
+
+    return {
+      x: ((clientX - rect.left) / rect.width) * CANVAS_WIDTH,
+      y: ((clientY - rect.top) / rect.height) * CANVAS_HEIGHT,
+    };
+  };
+
+  const movePlayerTowards = (clientX: number, clientY: number) => {
+    const position = toWorldPosition(clientX, clientY);
+    if (!position) return;
+    pointerWorldRef.current = position;
+    followPointer(position.x, position.y);
+  };
+
+  // "Clicar e guiar" com o mouse (desktop); o toque no canvas é ignorado
+  // para não brigar com o joystick do celular.
+  const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (e.pointerType === 'touch') return;
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    pointerActiveRef.current = true;
+    movePlayerTowards(e.clientX, e.clientY);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!pointerActiveRef.current) return;
+    movePlayerTowards(e.clientX, e.clientY);
+  };
+
+  const releasePointer = () => {
+    pointerActiveRef.current = false;
+    pointerWorldRef.current = null;
+  };
+
   // Desenha efeito de brilho (glow) ao redor de um elemento
   // Usa gradiente radial para criar o efeito neon
   const drawGlow = (
@@ -526,6 +593,12 @@ const KeroGame: React.FC<KeroGameProps> = ({ controlsRef, status, finalScore, on
         if (isPressed('left')) state.playerX = Math.max(0, state.playerX - moveSpeed);
         if (isPressed('right')) state.playerX = Math.min(CANVAS_WIDTH - PLAYER_WIDTH, state.playerX + moveSpeed);
 
+        // Mouse clicando e arrastando no canvas manda no personagem
+        const pointer = pointerWorldRef.current;
+        if (pointerActiveRef.current && pointer) {
+          followPointer(pointer.x, pointer.y);
+        }
+
         // Inclinação segue a subida/descida e volta ao nível sozinha
         const verticalDelta = state.playerY - previousY;
         state.playerTilt = Math.max(
@@ -538,7 +611,8 @@ const KeroGame: React.FC<KeroGameProps> = ({ controlsRef, status, finalScore, on
           verticalDelta !== 0 ||
           state.playerX !== previousX ||
           isPressed('left') ||
-          isPressed('right');
+          isPressed('right') ||
+          (pointerActiveRef.current && pointer !== null);
         state.animTime += delta * (moving ? PLAYER_FPS : PLAYER_HOVER_FPS);
 
         // Aumenta a velocidade gradualmente conforme o jogador pontua
@@ -844,7 +918,14 @@ const KeroGame: React.FC<KeroGameProps> = ({ controlsRef, status, finalScore, on
       `}</style>
 
       <div className="kg-frame" style={{ width: frame.width, height: frame.height }}>
-        <canvas ref={canvasRef} className="kg-canvas" />
+        <canvas
+          ref={canvasRef}
+          className="kg-canvas"
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={releasePointer}
+          onPointerCancel={releasePointer}
+        />
 
         {status !== 'playing' && (
           <div className="kg-overlay" style={{ fontSize: `${overlayFontSize}px` }}>
