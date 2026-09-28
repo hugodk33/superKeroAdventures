@@ -16,7 +16,7 @@ export const CANVAS_RATIO = CANVAS_WIDTH / CANVAS_HEIGHT;
  * Mesmo em telas pequenas o buffer não fica abaixo disso, então o jogo
  * nunca fica desfocado ao ser reduzido por CSS.
  */
-export const MIN_CANVAS_WIDTH = 800;
+export const MIN_CANVAS_WIDTH = 500;
 export const MIN_CANVAS_HEIGHT = (MIN_CANVAS_WIDTH / CANVAS_WIDTH) * CANVAS_HEIGHT;
 
 /** Abaixo disso a viewport é pequena demais para o jogo caber na horizontal. */

@@ -144,7 +144,7 @@ export default function Home() {
       </div>
 
       <footer className="instructions">
-        MOVE: ARROW KEYS, WASD or DRAG THE SCREEN
+        MOVER: SETAS, WASD ou ARRASTE A TELA
       </footer>
     </div>
   );

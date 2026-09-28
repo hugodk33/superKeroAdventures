@@ -86,11 +86,11 @@ const OrientationGate: React.FC<OrientationGateProps> = ({ reason }) => {
           <>
             GIRE PARA A HORIZONTAL
             <br />
-            PARA COMECAR A JOGAR
+            PARA COMEÇAR A JOGAR
           </>
         ) : (
           <>
-            O JOGO PRECISA DE NO MINIMO
+            O JOGO PRECISA DE NO MÍNIMO
             <br />
             {MIN_VIEWPORT_WIDTH} x {MIN_VIEWPORT_HEIGHT} PX
             <br />

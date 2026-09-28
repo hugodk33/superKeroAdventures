@@ -465,15 +465,18 @@ const KeroGame: React.FC<KeroGameProps> = ({ controlsRef, status, finalScore, on
     ctx.textBaseline = 'top';
 
     // Glow effect with multiple layers
+    // O borrão acompanha o tamanho da fonte: se ficasse fixo, o texto
+    // estourado no celular (ver hudScale) perderia a leitura.
+    const glow = size * 1.5;
     ctx.shadowColor = color;
-    ctx.shadowBlur = 25;
+    ctx.shadowBlur = glow;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
     ctx.fillStyle = color;
     ctx.fillText(text, x, y);
 
     // Add a brighter inner glow
-    ctx.shadowBlur = 10;
+    ctx.shadowBlur = glow * 0.4;
     ctx.fillText(text, x, y);
 
     ctx.shadowBlur = 0;
@@ -568,6 +571,14 @@ const KeroGame: React.FC<KeroGameProps> = ({ controlsRef, status, finalScore, on
 
       // Desenha sempre na resolução lógica 1000x600, independente do buffer
       ctx.setTransform(scale, 0, 0, scale, 0, 0);
+
+      // O HUD é desenhado em unidades do mundo, então um texto de tamanho fixo
+      // vira pixel de borra no celular (o canvas aparece com ~500px em vez de
+      // 1000px). Escala o HUD pela largura realmente visível para manter o
+      // mesmo tamanho aparente na tela, com piso (não cresce no desktop) e
+      // teto (não estoura em tela muito pequena).
+      const visibleWidth = canvas.clientWidth || MIN_CANVAS_WIDTH;
+      const hudScale = Math.max(1, Math.min(2.2, 875 / visibleWidth));
 
       // A lógica só roda com a partida ativa (botão COMEÇAR já pressionado)
       if (statusRef.current === 'playing' && state.gameActive && !state.gameOver) {
@@ -747,17 +758,31 @@ const KeroGame: React.FC<KeroGameProps> = ({ controlsRef, status, finalScore, on
       drawParticles(ctx);
 
       // Draw HUD
-      drawGlowText(ctx, `SCORE: ${Math.floor(state.score)}`, 20, 20, 16, COLORS.text);
-      drawGlowText(ctx, `SPEED: ${state.speed.toFixed(1)}x`, 20, 50, 14, COLORS.accent1);
+      drawGlowText(
+        ctx,
+        `PONTOS: ${Math.floor(state.score)}`,
+        20 * hudScale,
+        20 * hudScale,
+        16 * hudScale,
+        COLORS.text
+      );
+      drawGlowText(
+        ctx,
+        `VELOCIDADE: ${state.speed.toFixed(1)}x`,
+        20 * hudScale,
+        52 * hudScale,
+        14 * hudScale,
+        COLORS.accent1
+      );
 
       // Draw combo/streak indicator
-      const comboText = `STREAK: ${Math.floor(state.score / 10)}`;
-      ctx.font = 'bold 12px "Press Start 2P", monospace';
+      const comboText = `SEQUÊNCIA: ${Math.floor(state.score / 10)}`;
+      ctx.font = `bold ${12 * hudScale}px "Press Start 2P", monospace`;
       ctx.textAlign = 'right';
       ctx.shadowColor = COLORS.accent2;
-      ctx.shadowBlur = 15;
+      ctx.shadowBlur = 15 * hudScale;
       ctx.fillStyle = COLORS.accent2;
-      ctx.fillText(comboText, CANVAS_WIDTH - 20, 20);
+      ctx.fillText(comboText, CANVAS_WIDTH - 20 * hudScale, 20 * hudScale);
       ctx.shadowBlur = 0;
 
       // Game over: só o efeito de glitch no canvas, o texto e o botão ficam
@@ -872,8 +897,8 @@ const KeroGame: React.FC<KeroGameProps> = ({ controlsRef, status, finalScore, on
           <div className="kg-overlay" style={{ fontSize: `${overlayFontSize}px` }}>
             {status === 'gameover' ? (
               <>
-                <h2 className="kg-overlay-title">GAME OVER</h2>
-                <p className="kg-overlay-sub">PONTUACAO FINAL: {finalScore}</p>
+                <h2 className="kg-overlay-title">FIM DE JOGO</h2>
+                <p className="kg-overlay-sub">PONTUAÇÃO FINAL: {finalScore}</p>
                 <button type="button" className="kg-button" onClick={onRun}>
                   JOGAR DE NOVO
                 </button>
@@ -887,7 +912,7 @@ const KeroGame: React.FC<KeroGameProps> = ({ controlsRef, status, finalScore, on
                   O QUANTO MAIS VIVE, MAIS PONTOS
                 </p>
                 <button type="button" className="kg-button" onClick={onRun}>
-                  COMECAR
+                  COMEÇAR
                 </button>
               </>
             )}
