@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import GameControls from '@/components/GameControls';
+import AnalogStick from '@/components/AnalogStick';
 import KeroGame from '@/components/KeroGame';
 import OrientationGate from '@/components/OrientationGate';
 import { useOrientationGate } from '@/hooks/useOrientationGate';
@@ -91,18 +91,6 @@ export default function Home() {
           text-shadow: 0 0 8px #00FF00;
         }
 
-        .controls-bar {
-          flex: 0 0 auto;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: clamp(4px, 0.8vh, 10px);
-          border: 2px solid #0080FF;
-          border-radius: 10px;
-          box-shadow: 0 0 12px #0080FF, inset 0 0 14px rgba(0, 128, 255, 0.2);
-          background-color: rgba(10, 14, 39, 0.8);
-        }
-
         .instructions {
           flex: 0 0 auto;
           color: #00FF00;
@@ -113,6 +101,19 @@ export default function Home() {
         }
 
         /* Tela baixa (celular deitado): some o que não é essencial para o jogo */
+        /* Celular: sem título/instruções — o canvas assume a tela toda e o
+           joystick flutua por cima (ver AnalogStick). */
+        @media (pointer: coarse) {
+          .brand,
+          .instructions {
+            display: none;
+          }
+
+          .game-layout {
+            padding: 0;
+          }
+        }
+
         @media (max-height: 560px) {
           .instructions {
             display: none;
@@ -133,11 +134,6 @@ export default function Home() {
           .brand h1 {
             font-size: 8px;
           }
-
-          .controls-bar {
-            padding: 2px;
-            border-width: 1px;
-          }
         }
       `}</style>
 
@@ -156,12 +152,10 @@ export default function Home() {
         runId={runId}
       />
 
-      <div className="controls-bar">
-        <GameControls controlsRef={controlsRef} onRestart={handleRun} />
-      </div>
+      <AnalogStick controlsRef={controlsRef} onRestart={handleRun} />
 
       <footer className="instructions">
-        MOVER: SETAS, WASD ou ARRASTE A TELA
+        MOVER: SETAS, WASD ou o JOYSTICK
       </footer>
     </div>
   );
