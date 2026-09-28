@@ -117,8 +117,20 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
   body {
     @apply bg-background text-foreground;
+    /* O jogo ocupa a tela inteira: sem scroll, sem "puxar" a página no celular */
+    background-color: #0a0e27;
+    overscroll-behavior: none;
+    overflow: hidden;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
