@@ -202,13 +202,12 @@ export default function AnalogStick({ controlsRef, onRestart }: AnalogStickProps
         .analog-restart:active { transform: scale(0.94); }
 
         /* Celular: o stick vira o único controle, flutuando sobre o canvas
-           cheio, sem a moldura/barra do desktop. */
+           cheio no canto inferior direito, sem a moldura/barra do desktop. */
         @media (pointer: coarse) {
           .analog-stick {
             position: fixed;
-            left: 50%;
+            right: max(18px, env(safe-area-inset-right, 0px));
             bottom: max(18px, env(safe-area-inset-bottom, 0px));
-            transform: translateX(-50%);
             padding: 10px;
             border-radius: 50%;
             border-width: 2px;
